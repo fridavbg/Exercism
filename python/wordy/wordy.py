@@ -56,8 +56,6 @@ def answer(question):
         raise ValueError("syntax error")
     elif len(numbers) == 2 and len(operators) == 2:
         raise ValueError("syntax error")
-    elif len(numbers) == 2 and operators in operator_words:
-        return numbers
     if len(numbers) <= 2 and len(operators) > 0:
         if operators[0] == 'plus':
             result += numbers[1]
