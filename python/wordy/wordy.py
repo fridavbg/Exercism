@@ -25,7 +25,6 @@ def extract_numbers_and_operators(s):
 def answer(question):
     if question == 'What is?':
         raise ValueError('syntax error')
-
     previous_token_was_number = False
     for token in question[:-1].split():
         if token.isdigit() or (token[0] == '-' and token[1:].isdigit()):
@@ -34,7 +33,6 @@ def answer(question):
             previous_token_was_number = True
         else:
             previous_token_was_number = False
-
     numbers_operators = extract_numbers_and_operators(question)
     numbers = numbers_operators[0]
     operators = numbers_operators[1]
@@ -42,10 +40,8 @@ def answer(question):
         raise ValueError("unknown operation")
     result = numbers_operators[0][0]
     operator_words = ['plus', 'minus', 'multiplied', 'divided']
-
     if len(numbers) == 1 and len(operators) == 0 and len(question) <= 10:
         return result
-
     if len(operators) == 1 and len(numbers) == 1:
         raise ValueError("syntax error")
     elif len(operators) == len(numbers):
@@ -56,6 +52,8 @@ def answer(question):
         raise ValueError("syntax error")
     elif len(numbers) == 2 and len(operators) == 2:
         raise ValueError("syntax error")
+    elif len(numbers) == 2 and operators in operator_words:
+        return numbers
     if len(numbers) <= 2 and len(operators) > 0:
         if operators[0] == 'plus':
             result += numbers[1]
@@ -75,7 +73,6 @@ def answer(question):
             result *= numbers[1]
         elif operators[0] == 'divided':
             result = int(result / numbers[1])
-
         if operators[1] == 'plus':
             result += numbers[2]
         elif operators[1] == 'minus':
@@ -108,7 +105,7 @@ def answer(question):
 # print('TEST -3 plus 7 multiplied by -3:')
 # print(answer("What is -3 plus 7 multiplied by -2?"))
 # print('TEST invalid operator')
-# print( answer("What is?"))
+# print(answer("What is?"))
 # print(answer("What is 1 plus plus 2?"))
 # print(answer("What is 52 cubed?"))
 # print('TEST syntax error')

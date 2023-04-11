@@ -1,66 +1,63 @@
-OPERATOR_WORDS = ['plus', 'minus', 'multiplied', 'divided']
+from functools import reduce
+def wadd(x, y): return x + y
+def wsub(x, y): return x - y
+def wmul(x, y): return x * y
+def wdiv(x, y): return x // y
 
-def apply_operator(operator, num1, num2):
-    if operator == 'plus':
-        return num1 + num2
-    elif operator == 'minus':
-        return num1 - num2
-    elif operator == 'multiplied':
-        return num1 * num2
-    elif operator == 'divided':
-        return num1 // num2
 
-def extract_numbers_and_operators(s):
-    current_number = ''
-    numbers = []
-    operators = []
-    for word in s[:-1].split():
-        if word.isdigit() or (word[0] == '-' and word[1:].isdigit()):
-            numbers.append(int(word))
-        elif word in OPERATOR_WORDS:
-            operators.append(word)
-            if current_number:
-                numbers.append(int(current_number))
-                current_number = ''
-        else:
-            if current_number:
-                numbers.append(int(current_number))
-                current_number = ''
-    if current_number:
-        numbers.append(int(current_number))
-    if not operators and numbers:
-        return numbers, operators
-    return numbers, operators
+validOps = {'plus': wadd,
+            'minus': wsub,
+            'multiplied': wmul,
+            'divided': wdiv}
+
+
+def curry(func, var):
+    y = var
+
+    def f(x):
+        return func(x, y)
+    return f
+
+
+def convertToInt(lst, err):
+    for x in lst:
+        try:
+            yield int(x)
+        except:
+            raise ValueError(err)
+
 
 def answer(question):
-    if question == 'What is?':
+    if not question.startswith('What is'):
+        raise ValueError('unknown operation')
+    question = question.lstrip('What is').rstrip('?')
+    if question == '':
         raise ValueError('syntax error')
-
-    previous_token_was_number = False
-    for token in question[:-1].split():
-        if token.isdigit() or (token[0] == '-' and token[1:].isdigit()):
-            if previous_token_was_number:
-                raise ValueError('syntax error')
-            previous_token_was_number = True
-        else:
-            previous_token_was_number = False
-
-    numbers, operators = extract_numbers_and_operators(question)
-    if len(numbers) == 0 and len(operators) == 0:
-        raise ValueError("unknown operation")
-    
-    result = numbers[0]
-    if len(numbers) == 1 and len(operators) == 0 and len(question) <= 10:
-        return result
-
-    for i in range(len(operators)):
-        if len(operators) == len(numbers) - 1:
-            result = apply_operator(operators[i], result, numbers[i+1])
-        else:
+    tokens = [t for t in question.split(' ') if t != 'by']
+    if len(tokens) == 0:
+        raise ValueError('unknown operation')
+    if len(tokens) == 1:
+        return int(tokens[0])
+    operators = [x for x in tokens
+                 if tokens.index(x) % 2 == 1
+                 and x in list(validOps.keys())]
+    arguments = [x for x in tokens
+                 if tokens.index(x) % 2 == 0]
+    if (len(operators) + 1 != len(arguments)):
+        raise ValueError('syntax error')
+    operants = [x for x
+                in convertToInt(arguments, 'syntax error')]
+    try:
+        curries = [curry(validOps[op], num)
+                   for (op, num)
+                   in zip(operators[0::1], operants[1::1])]
+        if (len(curries) == 0):
+            raise ValueError('unknown operation')
+        if (len(curries) * 2 != len(tokens) - 1):
             raise ValueError('syntax error')
-
-    return result
-
+    except KeyError:
+        raise ValueError('syntax error')
+    return reduce(lambda num, op: op(num), curries, int(tokens[0]))
 
 print('TEST Just 5:')
 print(answer('What is 5?'))
@@ -79,7 +76,7 @@ print(answer('What is 3 plus 2 multiplied by 3?'))
 print('TEST -3 plus 7 multiplied by -3:')
 print(answer("What is -3 plus 7 multiplied by -2?"))
 print('TEST invalid operator')
-print( answer("What is?"))
+print(answer("What is?"))
 print(answer("What is 1 plus plus 2?"))
 print(answer("What is 52 cubed?"))
 print('TEST syntax error')
