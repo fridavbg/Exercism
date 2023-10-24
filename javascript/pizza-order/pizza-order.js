@@ -10,6 +10,7 @@
  *
  * @returns {number} the price of the pizza
  */
+
 const pizzaMenu = {
     Margherita: 7,
     Caprese: 9,
@@ -20,9 +21,11 @@ const pizzaMenu = {
 
 export function pizzaPrice(pizza, ...extras) {
     let totalPrice = 0;
+
     if (pizza in pizzaMenu) {
         totalPrice += pizzaMenu[pizza];
     }
+
     for (const topping of extras) {
         totalPrice += pizzaMenu[topping];
     }
@@ -38,12 +41,12 @@ export function pizzaPrice(pizza, ...extras) {
 
 export function orderPrice(pizzaOrders) {
     let totalPrice = 0;
-    for (const order in pizzaOrders) {
-        console.log(order);
+
+    for (const order of pizzaOrders) {
+        let pizza = order.pizza;
+        let extras = order.extras;
+        totalPrice += pizzaPrice(pizza, ...extras);
     }
+
     return totalPrice;
 }
-
-const margherita = ["Margherita"];
-const caprese = ["Caprese", "ExtraToppings"];
-orderPrice([margherita, caprese]);

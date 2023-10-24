@@ -1,4 +1,4 @@
-import { pizzaPrice, orderPrice } from "./pizza-order";
+import { pizzaPrice, orderPrice } from "./pizza-order.js";
 
 class PizzaOrder {
     /**
