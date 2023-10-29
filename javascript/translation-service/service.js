@@ -41,9 +41,10 @@ export class TranslationService {
      * @returns {Promise<string[]>}
      */
     batch(texts) {
-        for (const word of texts) {
-            this.api.fetch(word).then((res) => res.translation);
+        if (texts.length === 0) {
+            return Promise.reject(new BatchIsEmpty());
         }
+        return Promise.all(texts.map(this.free.bind(this)));
     }
 
     /**
@@ -56,7 +57,16 @@ export class TranslationService {
      * @returns {Promise<void>}
      */
     request(text) {
-        throw new Error("Implement the request function");
+        const request = () =>
+            new Promise((resolve, reject) => {
+                this.api.request(text, (res) => {
+                    res ? reject(res) : resolve();
+                });
+            });
+
+        return request() // first try
+            .catch(request) // first retry
+            .catch(request); // second retry
     }
 
     /**
@@ -70,7 +80,19 @@ export class TranslationService {
      * @returns {Promise<string>}
      */
     premium(text, minimumQuality) {
-        throw new Error("Implement the premium function");
+        return this.api
+            .fetch(text)
+            .catch(() => {
+                // when api fails to fetch, request text
+                // when request passes, re fetch
+                return this.request(text).then(() => this.api.fetch(text));
+            })
+            .then((res) => {
+                if (res.quality < minimumQuality) {
+                    throw new QualityThresholdNotMet();
+                }
+                return res.translation;
+            });
     }
 }
 
