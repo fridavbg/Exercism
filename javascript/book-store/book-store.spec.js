@@ -1,4 +1,4 @@
-import { cost } from "./book-store.mjs";
+import { cost } from "./book-store.js";
 
 describe("Book Store", () => {
     describe("Creating a basket", () => {
