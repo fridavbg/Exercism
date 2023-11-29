@@ -20,60 +20,44 @@ const getBookCopies = (basket) => {
     }, {});
 };
 
-function calculateGroupDiscount(group) {
-    const uniqueBooks = group.length;
-    const discount = discounts[uniqueBooks] || 0;
-    return uniqueBooks * bookPrice * (1 - discount);
-}
-
 export const cost = (books) => {
     const bookCopies = getBookCopies(books);
-    let uniqueBookCounts = Object.values(bookCopies);
-    let discountGroups = Object.keys(discounts);
+    let totalPrice = 0;
+    let bookGroups = [];
 
-    // Initialize min Cost to Infinity
-    let prices = new Array(books.length + 1).fill(Infinity);
-    // Base case : 0 books 0 cost
-    prices[0] = 0;
-
-    function findPricesForBooks(
-        booksToBeGrouped,
-        calculatedPrice,
-        booksChecked
-    ) {
-        if (prices[booksChecked] > calculatedPrice) {
-            prices[booksChecked] = calculatedPrice;
-        }
-
-        for (let groupSize of discountGroups) {
-            groupSize = parseInt(groupSize);
-
-            let discountBookGroup = [];
-            let bookAmounts = [...booksToBeGrouped];
-
-            for (
-                let i = 0;
-                i < bookAmounts.length && discountBookGroup.length < groupSize;
-                i++
-            ) {
-                if (bookAmounts[i] > 0) {
-                    bookAmounts[i]--;
-                    discountBookGroup.push(i);
-                }
-            }
-
-            if (discountBookGroup.length === groupSize) {
-                findPricesForBooks(
-                    bookAmounts.filter((count) => count > 0),
-                    calculatedPrice + calculateGroupDiscount(discountBookGroup),
-                    booksChecked + groupSize
-                );
+    while (Object.keys(bookCopies).some((book) => bookCopies[book] > 0)) {
+        let group = [];
+        for (const book in bookCopies) {
+            if (bookCopies[book] > 0 && group.length < 5) {
+                group.push(book);
+                bookCopies[book]--;
             }
         }
+        bookGroups.push(group.length);
     }
 
-    findPricesForBooks(uniqueBookCounts, 0, 0);
+    let indexOfFive = bookGroups.indexOf(5);
+    let indexOfThree = bookGroups.indexOf(3);
+    while (indexOfFive !== -1 && indexOfThree !== -1) {
+        bookGroups[indexOfFive] = 4;
+        bookGroups[indexOfThree] = 4;
+        indexOfFive = bookGroups.indexOf(5);
+        indexOfThree = bookGroups.indexOf(3);
+    }
 
-    return prices[books.length];
+    totalPrice = bookGroups.reduce((acc, groupSize) => {
+        groupSize = Number(groupSize);
+        return acc + bookPrice * groupSize * (1 - discounts[groupSize]);
+    }, 0);
+
+    return totalPrice;
 };
-git;
+
+// Test cases
+console.log(cost([])); // Should return 0
+console.log(cost([2, 2])); // Should return 1600
+console.log(cost([1, 2])); // Should return 1520
+console.log(cost([1, 2, 3])); // Should return 2160
+console.log(cost([1, 2, 3, 4])); // Should return 2560
+console.log(cost([1, 2, 3, 4, 5])); // Should return 3000
+console.log(cost([1, 1, 2, 2, 3, 3, 4, 5])); // Should return 5120
